@@ -6,12 +6,14 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/hibiken/asynq"
 	"github.com/tinkler/keeper_grid/pkg/tasks/automation_compatible"
 	"github.com/tinkler/moonmist/pkg/mlog"
 )
 
-func (h *pool) HandleCheckUpkeep(ctx context.Context, t *asynq.Task) error {
+func (h *pool) HandleAutomation(ctx context.Context, t *asynq.Task) error {
 	p, err := automation_compatible.ParseFrom(t)
 	if err != nil {
 		return err
@@ -25,7 +27,7 @@ func (h *pool) HandleCheckUpkeep(ctx context.Context, t *asynq.Task) error {
 	}
 	callable, executedata, err := binder.CheckUpkeep(&bind.CallOpts{
 		From: p.Keeper,
-	}, []byte{})
+	}, p.CheckData)
 	if err != nil {
 		if errors.Is(err, bind.ErrNoCode) {
 			return fmt.Errorf("contract is not exist %s, %w", p.AutomationCompatibleAddress.Hex(), asynq.SkipRetry)
@@ -33,5 +35,19 @@ func (h *pool) HandleCheckUpkeep(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 	mlog.Info(callable, executedata)
+	chainId, _ := h.client.ChainID(ctx)
+	if callable {
+		performTx, err := binder.contract.PerformUpkeep(&bind.TransactOpts{
+			From: h.wallet.Accounts()[0].Address,
+			Signer: func(a common.Address, t *types.Transaction) (*types.Transaction, error) {
+				return h.wallet.SignTx(h.wallet.Accounts()[0], t, chainId)
+			},
+		}, executedata)
+		if err != nil {
+			return err
+		}
+		_, err = waitForReceipt(ctx, h.client, performTx.Hash())
+		return err
+	}
 	return nil
 }

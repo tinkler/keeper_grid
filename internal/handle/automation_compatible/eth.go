@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/tinkler/keeper_grid/pkg/eth/com"
+	"github.com/tinkler/keeper_grid/pkg/pkeystore"
 )
 
 /*
@@ -15,7 +15,7 @@ A pool which eth_call the automation
 */
 type pool struct {
 	client *ethclient.Client
-	wallet *keystore.KeyStore
+	wallet *pkeystore.KeyStore
 }
 
 type binder struct {
@@ -23,7 +23,7 @@ type binder struct {
 	contract *com.AutomationCompatible
 }
 
-func NewHandler(ctx context.Context, rawurl string, wallet *keystore.KeyStore) (*pool, error) {
+func NewHandler(ctx context.Context, rawurl string, wallet *pkeystore.KeyStore) (*pool, error) {
 	client, err := ethclient.DialContext(ctx, rawurl)
 	if err != nil {
 		return nil, err

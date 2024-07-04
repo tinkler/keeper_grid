@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/hibiken/asynq"
 	"github.com/tinkler/keeper_grid/internal/handle/automation_compatible"
+	"github.com/tinkler/keeper_grid/pkg/pkeystore"
 	"github.com/tinkler/keeper_grid/pkg/tasks"
 	"github.com/tinkler/moonmist/pkg/mlog"
 )
@@ -20,12 +21,12 @@ func main() {
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
 	// progress
-	wallet := keystore.NewKeyStore(filepath.Join(root, "wallet"), keystore.StandardScryptN, keystore.StandardScryptP)
-	_, err := wallet.NewAccount("nsdcawer512")
-	if err != nil {
-		panic(err)
-	}
-	iotexPool, err := automation_compatible.NewHandler(serverCtx, "http://localhost:8545", wallet)
+	wallet := pkeystore.NewKeyStore(filepath.Join(root, "wallet"), keystore.StandardScryptN, keystore.StandardScryptP)
+	// _, err := wallet.NewAccount("nsdcawer512")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	iotexPool, err := automation_compatible.NewHandler(serverCtx, "https://rpc-mode-sepolia-vtnhnpim72.t.conduit.xyz", wallet)
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +44,7 @@ func main() {
 	)
 
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(tasks.ACT_IOTEX, iotexPool.HandleCheckUpkeep)
+	mux.HandleFunc(tasks.ACT_IOTEX, iotexPool.HandleAutomation)
 
 	signalCtx, signalStop := signal.NotifyContext(serverCtx, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	defer signalStop()

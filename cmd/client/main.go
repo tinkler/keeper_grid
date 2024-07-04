@@ -16,7 +16,7 @@ func main() {
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
 	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "localhost:6379", Password: "password"})
-	task, err := automation_compatible.NewTask("0x13AE1e5702DffcfD9900713f2Ba9d2995af7ed5D", "0xaf64fa33a8a0640e1eaf6b6f32b81efd11653460")
+	task, err := automation_compatible.NewTask("0x09fB3D3c8C56F14bbF6A215D29FE3e49DC8Fdd13", "0xaf64fa33a8a0640e1eaf6b6f32b81efd11653460")
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +27,7 @@ func main() {
 	go func() {
 		for {
 
-			info, err := client.Enqueue(task, asynq.Timeout(3*time.Minute))
+			info, err := client.Enqueue(task, asynq.Timeout(1*time.Minute))
 			if err != nil {
 				panic(err)
 			}

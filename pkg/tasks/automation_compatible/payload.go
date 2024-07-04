@@ -13,6 +13,7 @@ import (
 type automationCompatiblePayload struct {
 	AutomationCompatibleAddress common.Address
 	Keeper                      common.Address
+	CheckData                   []byte
 }
 
 func ParseFrom(t *asynq.Task) (*automationCompatiblePayload, error) {
@@ -25,10 +26,10 @@ func ParseFrom(t *asynq.Task) (*automationCompatiblePayload, error) {
 
 func NewTask(addr string, keeper string) (*asynq.Task, error) {
 	if !common.IsHexAddress(addr) {
-		return nil, fmt.Errorf("The address of AutomationCompatible is invalid: %s", addr)
+		return nil, fmt.Errorf("the address of AutomationCompatible is invalid: %s", addr)
 	}
 	if !common.IsHexAddress(keeper) {
-		return nil, fmt.Errorf("The address of keeper is invalid: %s", keeper)
+		return nil, fmt.Errorf("the address of keeper is invalid: %s", keeper)
 	}
 	p, err := cjson.Marshal(automationCompatiblePayload{
 		AutomationCompatibleAddress: common.HexToAddress(addr),
