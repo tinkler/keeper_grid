@@ -5,7 +5,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hibiken/asynq"
-	"github.com/tinkler/keeper_grid/pkg/tasks"
 	"github.com/tinkler/moonmist/pkg/jsonz/cjson"
 	"github.com/tinkler/moonmist/pkg/mlog"
 )
@@ -24,7 +23,7 @@ func ParseFrom(t *asynq.Task) (*automationCompatiblePayload, error) {
 	return &p, nil
 }
 
-func NewTask(addr string, keeper string) (*asynq.Task, error) {
+func NewTask(typename string, addr string, keeper string, checkData []byte) (*asynq.Task, error) {
 	if !common.IsHexAddress(addr) {
 		return nil, fmt.Errorf("the address of AutomationCompatible is invalid: %s", addr)
 	}
@@ -34,10 +33,11 @@ func NewTask(addr string, keeper string) (*asynq.Task, error) {
 	p, err := cjson.Marshal(automationCompatiblePayload{
 		AutomationCompatibleAddress: common.HexToAddress(addr),
 		Keeper:                      common.HexToAddress(keeper),
+		CheckData:                   checkData,
 	})
 	if err != nil {
 		mlog.Error(err)
 		return nil, err
 	}
-	return asynq.NewTask(tasks.ACT_IOTEX, p, asynq.MaxRetry(5)), nil
+	return asynq.NewTask(typename, p, asynq.MaxRetry(5)), nil
 }
